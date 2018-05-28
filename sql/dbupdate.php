@@ -3,7 +3,7 @@
 /**
  * Question plugin example: database update script
  *
- * @author Fred Neumann <fred.neumann@fim.uni-erlangen.de>
+ * @author Fred Neumann <fred.neumann@fau.de>
  * @version $Id$
  */ 
 

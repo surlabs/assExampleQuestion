@@ -1,13 +1,9 @@
 <?php
 
-include_once "./Modules/TestQuestionPool/classes/class.assQuestion.php";
-include_once "./Modules/Test/classes/inc.AssessmentConstants.php";
-
 /**
  * Example class for question type plugins
  *
  * @author	Fred Neumann <fred.neumann@fau.de>
- * @version	$Id:  $
  * @ingroup ModulesTestQuestionPool
  */
 class assExampleQuestion extends assQuestion
@@ -15,7 +11,7 @@ class assExampleQuestion extends assQuestion
 	/**
 	 * @var ilassExampleQuestionPlugin	The plugin object
 	 */
-	var $plugin = null;
+	protected $plugin = null;
 
 
 	/**
@@ -23,15 +19,21 @@ class assExampleQuestion extends assQuestion
 	 *
 	 * The constructor takes possible arguments and creates an instance of the question object.
 	 *
+	 * @param string $title A title string to describe the question
+	 * @param string $comment A comment string to describe the question
+	 * @param string $author A string containing the name of the questions author
+	 * @param integer $owner A numerical ID to identify the owner/creator
+	 * @param string $question Question text
 	 * @access public
+	 *
 	 * @see assQuestion:assQuestion()
 	 */
 	function __construct( 
-		$title = "",
-		$comment = "",
-		$author = "",
+		$title = '',
+		$comment = '',
+		$author = '',
 		$owner = -1,
-		$question = ""
+		$question = ''
 	)
 	{
 		// needed for excel export
@@ -41,15 +43,53 @@ class assExampleQuestion extends assQuestion
 	}
 
 	/**
+	 * Returns the question type of the question
+	 *
+	 * @return string The question type of the question
+	 */
+	public function getQuestionType()
+	{
+		return 'assExampleQuestion';
+	}
+
+	/**
+	 * Returns the names of the additional question data tables
+	 *
+	 * All tables must have a 'question_fi' column.
+	 * Data from these tables will be deleted if a question is deleted
+	 *
+	 * @return mixed 	the name(s) of the additional tables (array or string)
+	 */
+	public function getAdditionalTableName()
+	{
+		return '';
+	}
+
+	/**
+	 * Collects all texts in the question which could contain media objects
+	 * which were created with the Rich Text Editor
+	 */
+	protected function getRTETextWithMediaObjects()
+	{
+		$text = parent::getRTETextWithMediaObjects();
+
+		// eventually add the content of question type specific text fields
+		// ..
+
+		return $text;
+	}
+
+
+	/**
 	 * Get the plugin object
 	 *
 	 * @return object The plugin object
 	 */
-	public function getPlugin() {
+	public function getPlugin()
+	{
 		if ($this->plugin == null)
 		{
-			include_once "./Services/Component/classes/class.ilPlugin.php";
-			$this->plugin = ilPlugin::getPluginObject(IL_COMP_MODULE, "TestQuestionPool", "qst", "assExampleQuestion");
+			$this->plugin = ilPlugin::getPluginObject(IL_COMP_MODULE, 'TestQuestionPool', 'qst', 'assExampleQuestion');
 				
 		}
 		return $this->plugin;
@@ -64,7 +104,7 @@ class assExampleQuestion extends assQuestion
 	{
 		// Please add here your own check for question completeness
 		// The parent function will always return false
-		if(($this->title) and ($this->author) and ($this->question) and ($this->getMaximumPoints() > 0))
+		if(!empty($this->title) && !empty($this->author) && !empty($this->question) && $this->getMaximumPoints() > 0)
 		{
 			return true;
 		}
@@ -77,11 +117,11 @@ class assExampleQuestion extends assQuestion
 	/**
 	 * Saves a question object to a database
 	 * 
-	 * @param	string		original id
+	 * @param	string		$original_id
 	 * @access 	public
 	 * @see assQuestion::saveToDb()
 	 */
-	function saveToDb($original_id = "")
+	function saveToDb($original_id = '')
 	{
 
 		// save the basic data (implemented in parent)
@@ -106,7 +146,8 @@ class assExampleQuestion extends assQuestion
 	 */
 	public function loadFromDb($question_id)
 	{
-		global $ilDB;
+		global $DIC;
+		$ilDB = $DIC->database();
                 
 		// load the basic question data
 		$result = $ilDB->query("SELECT qpl_questions.* FROM qpl_questions WHERE question_id = "
@@ -114,18 +155,17 @@ class assExampleQuestion extends assQuestion
 
 		$data = $ilDB->fetchAssoc($result);
 		$this->setId($question_id);
-		$this->setTitle($data["title"]);
-		$this->setComment($data["description"]);
-		$this->setSuggestedSolution($data["solution_hint"]);
-		$this->setOriginalId($data["original_id"]);
-		$this->setObjId($data["obj_fi"]);
-		$this->setAuthor($data["author"]);
-		$this->setOwner($data["owner"]);
-		$this->setPoints($data["points"]);
+		$this->setObjId($data['obj_fi']);
+		$this->setOriginalId($data['original_id']);
+		$this->setOwner($data['owner']);
+		$this->setTitle($data['title']);
+		$this->setAuthor($data['author']);
+		$this->setPoints($data['points']);
+		$this->setComment($data['description']);
+		$this->setSuggestedSolution($data['solution_hint']);
 
-		include_once("./Services/RTE/classes/class.ilRTE.php");
-		$this->setQuestion(ilRTE::_replaceMediaObjectImageSrc($data["question_text"], 1));
-		$this->setEstimatedWorkingTime(substr($data["working_time"], 0, 2), substr($data["working_time"], 3, 2), substr($data["working_time"], 6, 2));
+		$this->setQuestion(ilRTE::_replaceMediaObjectImageSrc($data['question_text'], 1));
+		$this->setEstimatedWorkingTime(substr($data['working_time'], 0, 2), substr($data['working_time'], 3, 2), substr($data['working_time'], 6, 2));
 
 		// now you can load additional data
 		// ...
@@ -147,9 +187,15 @@ class assExampleQuestion extends assQuestion
 	 * Duplicates a question
 	 * This is used for copying a question to a test
 	 *
-	 * @access public
+	 * @param bool   		$for_test
+	 * @param string 		$title
+	 * @param string 		$author
+	 * @param string 		$owner
+	 * @param integer|null	$testObjId
+	 *
+	 * @return void|integer Id of the clone or nothing.
 	 */
-	function duplicate($for_test = true, $title = "", $author = "", $owner = "", $testObjId = null)
+	public function duplicate($for_test = true, $title = '', $author = '', $owner = '', $testObjId = null)
 	{
 		if ($this->getId() <= 0)
 		{
@@ -157,7 +203,7 @@ class assExampleQuestion extends assQuestion
 			return;
 		}
 
-		// make a real clone to keep the object unchanged
+		// make a real clone to keep the actual object unchanged
 		$clone = clone $this;
 							
 		$original_id = assQuestion::_getOriginalId($this->getId());
@@ -168,26 +214,26 @@ class assExampleQuestion extends assQuestion
 			$clone->setObjId($testObjId);
 		}
 
-		if ($title)
+		if (!empty($title))
 		{
 			$clone->setTitle($title);
 		}
-		if ($author)
+		if (!empty($author))
 		{
 			$clone->setAuthor($author);
 		}
-		if ($owner)
+		if (!empty($owner))
 		{
 			$clone->setOwner($owner);
 		}		
 		
 		if ($for_test)
 		{
-			$clone->saveToDb($original_id, false);
+			$clone->saveToDb($original_id);
 		}
 		else
 		{
-			$clone->saveToDb('', false);
+			$clone->saveToDb();
 		}		
 
 		// copy question page content
@@ -205,9 +251,12 @@ class assExampleQuestion extends assQuestion
 	 * Copies a question
 	 * This is used when a question is copied on a question pool
 	 *
-	 * @access public
+	 * @param integer	$target_questionpool_id
+	 * @param string	$title
+	 *
+	 * @return void|integer Id of the clone or nothing.
 	 */
-	function copyObject($target_questionpool_id, $title = "")
+	function copyObject($target_questionpool_id, $title = '')
 	{
 		if ($this->getId() <= 0)
 		{
@@ -222,13 +271,13 @@ class assExampleQuestion extends assQuestion
 		$source_questionpool_id = $this->getObjId();
 		$clone->setId(-1);
 		$clone->setObjId($target_questionpool_id);
-		if ($title)
+		if (!empty($title))
 		{
 			$clone->setTitle($title);
 		}
 				
 		// save the clone data
-		$clone->saveToDb('', false);
+		$clone->saveToDb();
 
 		// copy question page content
 		$clone->copyPageOfQuestion($original_id);
@@ -237,6 +286,45 @@ class assExampleQuestion extends assQuestion
 
 		// call the event handler for copy
 		$clone->onCopy($source_questionpool_id, $original_id, $clone->getObjId(), $clone->getId());
+
+		return $clone->getId();
+	}
+
+	/**
+	 * Create a new original question in a question pool for a test question
+	 * @param int $targetParentId			id of the target question pool
+	 * @param string $targetQuestionTitle
+	 * @return int|void
+	 */
+	public function createNewOriginalFromThisDuplicate($targetParentId, $targetQuestionTitle = '')
+	{
+		if ($this->id <= 0)
+		{
+			// The question has not been saved. It cannot be duplicated
+			return;
+		}
+
+		$sourceQuestionId = $this->id;
+		$sourceParentId = $this->getObjId();
+
+		// make a real clone to keep the object unchanged
+		$clone = clone $this;
+		$clone->setId(-1);
+
+		$clone->setObjId($targetParentId);
+
+		if (!empty($targetQuestionTitle))
+		{
+			$clone->setTitle($targetQuestionTitle);
+		}
+
+		$clone->saveToDb();
+		// copy question page content
+		$clone->copyPageOfQuestion($sourceQuestionId);
+		// copy XHTML media objects
+		$clone->copyXHTMLMediaObjectsOfQuestion($sourceQuestionId);
+
+		$clone->onCopy($sourceParentId, $sourceQuestionId, $clone->getObjId(), $clone->getId());
 
 		return $clone->getId();
 	}
@@ -262,29 +350,83 @@ class assExampleQuestion extends assQuestion
 	 * 		saveWorkingData()
 	 * 		calculateReachedPointsForSolution()
 	 *
-	 * @return	array	('value1' => string, 'value2' => string, 'points' => float)
+	 * @return	array	('value1' => string|null, 'value2' => float|null)
 	 */
 	protected function getSolutionSubmit()
 	{
+		$value1 = trim(ilUtil::stripSlashes($_POST['question'.$this->getId().'value1']));
+		$value2 = trim(ilUtil::stripSlashes($_POST['question'.$this->getId().'value2']));
+
 		return array(
-			'value1' => ilUtil::stripSlashes($_POST["question".$this->getId()."value1"]),
-			'value2' => ilUtil::stripSlashes($_POST["question".$this->getId()."value2"]),
-			'points' =>  (float) $_POST["question".$this->getId()."points"]
+			'value1' => empty($value1)? null : (string) $value1,
+			'value2' => empty($value2)? null : (float) $value2
 		);
 	}
 
 	/**
+	 * Get a stored solution for a user and test pass
+	 * This is a wrapper to provide the same structure as getSolutionSubmit()
+	 *
+	 * @param int 	$active_id		active_id of hte user
+	 * @param int	$pass			number of the test pass
+	 * @param bool	$authorized		get the authorized solution
+	 *
+	 * @return	array	('value1' => string|null, 'value2' => float|null)
+	 */
+	public function getSolutionStored($active_id, $pass, $authorized = null)
+	{
+		// This provides an array with records from tst_solution
+		// The example question should only store one record per answer
+		// Other question types may use multiple records with value1/value2 in a key/value style
+		if (isset($authorized))
+		{
+			// this provides either the authorized or intermediate solution
+			$solutions = $this->getSolutionValues($active_id, $pass, $authorized);
+		}
+		else
+		{
+			// this provides the solution preferring the intermediate
+			// or the solution from the previous pass
+			$solutions = $this->getTestOutputSolutions($active_id, $pass);
+		}
+
+
+		if (empty($solutions))
+		{
+			// no solution stored yet
+			$value1 = null;
+			$value2 = null;
+		}
+		else
+		{
+			// If the process locker isn't activated in the Test and Assessment administration
+			// then we may have multiple records due to race conditions
+			// In this case the last saved record wins
+			$solution = end($solutions);
+
+			$value1 = $solution['value1'];
+			$value2 = $solution['value2'];
+		}
+
+		return array(
+			'value1' => empty($value1)? null : (string) $value1,
+			'value2' => empty($value2)? null : (float) $value2
+		);
+	}
+
+
+	/**
 	 * Calculate the reached points from a solution array
 	 *
-	 * @param	array	('value1' => string, 'value2' => string, 'points' => float)
+	 * @param	array	('value1' => string, 'value2' => float)
 	 * @return  float	reached points
 	 */
 	protected function calculateReachedPointsForSolution($solution)
 	{
 		// in our example we take the points entered by the student
 		// and adjust them to be in the allowed range
-		$points = $solution["points"];
-		if (empty($points) or $points < 0 or $points > $this->getMaximumPoints())
+		$points = (float) $solution['value2'];
+		if ($points <= 0 || $points > $this->getMaximumPoints())
 		{
 			$points = 0;
 		}
@@ -299,14 +441,15 @@ class assExampleQuestion extends assQuestion
 	 * Returns the points, a learner has reached answering the question
 	 * The points are calculated from the given answers.
 	 *
-	 * @param integer $active 	The Id of the active learner
-	 * @param integer $pass 	The Id of the test pass
+	 * @param int $active_id
+	 * @param integer $pass The Id of the test pass
+	 * @param bool $authorizedSolution
 	 * @param boolean $returndetails (deprecated !!)
-	 * @return integer/array $points/$details (array $details is deprecated !!)
-	 * @access public
-	 * @see  assQuestion::calculateReachedPoints()
+	 * @return int
+	 *
+	 * @throws ilTestException
 	 */
-	function calculateReachedPoints($active_id, $pass = NULL, $returndetails = FALSE)
+	public function calculateReachedPoints($active_id, $pass = NULL, $authorizedSolution = true, $returndetails = false)
 	{
 		if( $returndetails )
 		{
@@ -320,225 +463,134 @@ class assExampleQuestion extends assQuestion
 
 		// get the answers of the learner from the tst_solution table
 		// the data is saved by saveWorkingData() in this class
-		$solutions = $this->getSolutionValues($active_id, $pass);
+		$solution = $this->getSolutionStored($active_id, $pass, $authorizedSolution);
 
-		// there may be more solutions stored due to race conditions
-		// the last saved solution record wins
-		return $this->calculateReachedPointsForSolution(empty($solutions) ? array() : end($solutions));
+		return $this->calculateReachedPointsForSolution($solution);
 	}
 
 
 	/**
-	 * Saves the learners input of the question to the database
+	 * Saves the learners input of the question to the database.
 	 *
-	 * @param 	integer $test_id The database id of the test containing this question
-	 * @return 	boolean Indicates the save status (true if saved successful, false otherwise)
-	 * @access 	public
-	 * @see 	assQuestion::saveWorkingData()
+	 * @param integer $active_id 	Active id of the user
+	 * @param integer $pass 		Test pass
+	 * @param boolean $authorized	The solution is authorized
+	 *
+	 * @return boolean $status
 	 */
-	function saveWorkingData($active_id, $pass = NULL)
+	function saveWorkingData($active_id, $pass = NULL, $authorized = true)
 	{
-		global $ilDB;
-		global $ilUser;
-
 		if (is_null($pass))
 		{
-			include_once "./Modules/Test/classes/class.ilObjTest.php";
 			$pass = ilObjTest::_getPass($active_id);
 		}
 
 		// get the submitted solution
 		$solution = $this->getSolutionSubmit();
 
-		// lock to prevent race conditions
-		$this->getProcessLocker()->requestUserSolutionUpdateLock();
+		$entered_values = 0;
 
-		// save the answers of the learner to tst_solution table
-		// this data is question type specific
-		// it is used used by calculateReachedPointsForSolution() in this class
+		// save the submitted values avoiding race conditions
+		$this->getProcessLocker()->executeUserSolutionUpdateLockOperation(function() use (&$entered_values, $solution, $active_id, $pass, $authorized) {
 
-		$result = $ilDB->queryF("SELECT solution_id FROM tst_solutions WHERE active_fi = %s AND question_fi = %s AND pass = %s",
-			array('integer','integer','integer'),
-			array($active_id, $this->getId(), $pass)
-		);
 
-		$row = $ilDB->fetchAssoc($result);
-		if ($row)
+			$entered_values = isset($solution['value1']) || isset($solution['value2']);
+
+			if ($authorized)
+			{
+				// a new authorized solution will delete the old one and the intermediate
+				$this->removeExistingSolutions($active_id, $pass);
+			}
+			elseif ($entered_values)
+			{
+				// an new intermediate solution will only delete a previous one
+				$this->removeIntermediateSolution($active_id, $pass);
+			}
+
+			if ($entered_values)
+			{
+				$this->saveCurrentSolution($active_id, $pass, $solution['value1'],  $solution['value2'], $authorized);
+			}
+		});
+
+
+		// Log whether the user entered values
+		if (ilObjAssessmentFolder::_enabledAssessmentLogging())
 		{
-			$affectedRows = $ilDB->update("tst_solutions",
-				array(
-					"active_fi"   => array("integer", $active_id),
-					"question_fi" => array("integer", $this->getId()),
-					"pass"        => array("integer", $pass),
-					"tstamp"      => array("integer", time()),
-
-					// points, value1 and value2 are multi-purpose fields
-					// store here what you want from the POST data
-					// in our example we allow to enter these values directly
-					"points" 	  => array("float", $solution["points"]),
-					"value1"      => array("clob", $solution["value1"]),
-					"value2"      => array("clob", $solution["value2"]),
-				),
-				array (
-					"solution_id" => array("integer", $row['solution_id']),
-				)
+			assQuestion::logAction($this->lng->txtlng(
+				'assessment',
+				$entered_values ? 'log_user_entered_values' : 'log_user_not_entered_values',
+				ilObjAssessmentFolder::_getLogLanguage()
+			),
+				$active_id,
+				$this->getId()
 			);
 		}
-		else
-		{
-			$next_id = $ilDB->nextId('tst_solutions');
-			$affectedRows = $ilDB->insert("tst_solutions",
-				array(
-					"solution_id" => array("integer", $next_id),
-					"active_fi"   => array("integer", $active_id),
-					"question_fi" => array("integer", $this->getId()),
-					"pass"        => array("integer", $pass),
-					"tstamp"      => array("integer", time()),
 
-					// points, value1 and value2 are multi-purpose fields
-					// store here what you want from the POST data
-					// in our example we allow to enter these values directly
-					"points" 	  => array("float", $solution["points"]),
-					"value1"      => array("clob", $solution["value1"]),
-					"value2"      => array("clob", $solution["value2"]),
-			));
-		}
-
-		// unlock
-		$this->getProcessLocker()->releaseUserSolutionUpdateLock();
-
-		// Check if the user has entered something
-		// Then set entered_values accordingly
-		if (!empty($solution["points"]))
-		{
-			$entered_values = TRUE;
-		}
-
-		if ($entered_values)
-		{
-			include_once ("./Modules/Test/classes/class.ilObjAssessmentFolder.php");
-			if (ilObjAssessmentFolder::_enabledAssessmentLogging())
-			{
-				$this->logAction($this->lng->txtlng("assessment", "log_user_entered_values", ilObjAssessmentFolder::_getLogLanguage()), $active_id, $this->getId());
-			}
-		}
-		else
-		{
-			include_once ("./Modules/Test/classes/class.ilObjAssessmentFolder.php");
-			if (ilObjAssessmentFolder::_enabledAssessmentLogging())
-			{
-				$this->logAction($this->lng->txtlng("assessment", "log_user_not_entered_values", ilObjAssessmentFolder::_getLogLanguage()), $active_id, $this->getId());
-			}
-		}
-
+		// submitted solution is valid
 		return true;
 	}
 
 
 	/**
 	 * Reworks the allready saved working data if neccessary
-	 *
-	 * @access protected
 	 * @param integer $active_id
 	 * @param integer $pass
 	 * @param boolean $obligationsAnswered
+	 * @param boolean $authorized
 	 */
-	protected function reworkWorkingData($active_id, $pass, $obligationsAnswered)
+	protected function reworkWorkingData($active_id, $pass, $obligationsAnswered, $authorized)
 	{
 		// normally nothing needs to be reworked
 	}
 
 
 	/**
-	 * Returns the question type of the question
-	 *
-	 * @return string The question type of the question
-	 */
-	public function getQuestionType()
-	{
-		return "assExampleQuestion";
-	}
-
-	/**
-	 * Returns the names of the additional question data tables
-	 *
-	 * all tables must have a 'question_fi' column
-	 * data from these tables will be deleted if a question is deleted
-	 *
-	 * @return mixed 	the name(s) of the additional tables (array or string)
-	 */
-	public function getAdditionalTableName()
-	{
-		return "";
-	}
-
-	
-	/**
-	 * Collects all text in the question which could contain media objects
-	 * which were created with the Rich Text Editor
-	 */
-	function getRTETextWithMediaObjects()
-	{
-		$text = parent::getRTETextWithMediaObjects();
-
-		// eventually add the content of question type specific text fields
-		// ..
-
-		return $text;
-	}
-
-
-	/**
 	 * Creates an Excel worksheet for the detailed cumulated results of this question
 	 *
-	 * @access public
-	 * @see assQuestion::setExportDetailsXLS()
+	 * @param object $worksheet    Reference to the parent excel worksheet
+	 * @param int $startrow     Startrow of the output in the excel worksheet
+	 * @param int $active_id    Active id of the participant
+	 * @param int $pass         Test pass
+	 *
+	 * @return int
 	 */
-	public function setExportDetailsXLS(&$worksheet, $startrow, $active_id, $pass, &$format_title, &$format_bold)
+	public function setExportDetailsXLS($worksheet, $startrow, $active_id, $pass)
 	{
-		global $lng;
+		$worksheet->setFormattedExcelTitle($worksheet->getColumnCoord(0) . $startrow, $this->getPlugin()->txt('assExampleQuestion'));
+		$worksheet->setFormattedExcelTitle($worksheet->getColumnCoord(1) . $startrow, $this->getTitle());
 
-		include_once ("./Services/Excel/classes/class.ilExcelUtils.php");
-		$solutions = $this->getSolutionValues($active_id, $pass);
+		$solution = $this->getSolutionStored($active_id, $pass, true);
+		$value1 = isset($solution['value1']) ? $solution['value1'] : '';
+		$value2 = isset($solution['value2']) ? $solution['value2'] : '';
 
-		if (is_array($solutions))
-		{
-			foreach ($solutions as $solution)
-			{
-				$value1 = isset($solution["value1"]) ? $solution["value1"] : "";
-				$value2 = isset($solution["value2"]) ? $solution["value2"] : "";
-				$points = isset($solution["points"]) ? $solution["points"] : "";
-			}
-		}
+		$row = $startrow + 1;
 
-		$worksheet->writeString($startrow, 0, ilExcelUtils::_convert_text($this->plugin->txt($this->getQuestionType())), $format_title);
-		$worksheet->writeString($startrow, 1, ilExcelUtils::_convert_text($this->getTitle()), $format_title);
-		$i = 1;
+		$worksheet->setCell($row, 0, $this->plugin->txt('label_value1'));
+		$worksheet->setBold($worksheet->getColumnCoord(0) . $row);
+		$worksheet->setCell($row, 1, $value1);
+		$row++;
 
-		// now provide a result string and write it to excel
-		// it is also possible to write multiple rows
-		$worksheet->writeString($startrow + $i, 0, ilExcelUtils::_convert_text($this->plugin->txt("label_value1")), $format_bold);
-		$worksheet->write($startrow + $i, 1, ilExcelUtils::_convert_text($value1));
-		$i++;
+		$worksheet->setCell($row, 0, $this->plugin->txt('label_value2'));
+		$worksheet->setBold($worksheet->getColumnCoord(0) . $row);
+		$worksheet->setCell($row, 1, $value2);
+		$row++;
 
-		$worksheet->writeString($startrow + $i, 0, ilExcelUtils::_convert_text($this->plugin->txt("label_value2")), $format_bold);
-		$worksheet->write($startrow + $i, 1, ilExcelUtils::_convert_text($value2));
-		$i++;
-
-		$worksheet->writeString($startrow + $i, 0, ilExcelUtils::_convert_text($this->plugin->txt("label_points")), $format_bold);
-		$worksheet->write($startrow + $i, 1, ilExcelUtils::_convert_text($points));
-		$i++;
-
-		return $startrow + $i + 1;
+		return $row + 1;
 	}
 
 	/**
 	 * Creates a question from a QTI file
-	 * Receives parameters from a QTI parser and creates a valid ILIAS question object
-	 * Extension needed to get the plugin path for the import class
 	 *
+	 * Receives parameters from a QTI parser and creates a valid ILIAS question object
+	 *
+	 * @param object $item The QTI item object
+	 * @param integer $questionpool_id The id of the parent questionpool
+	 * @param integer $tst_id The id of the parent test if the question is part of a test
+	 * @param object $tst_object A reference to the parent test object
+	 * @param integer $question_counter A reference to a question counter to count the questions of an imported question pool
+	 * @param array $import_mapping An array containing references to included ILIAS objects
 	 * @access public
-	 * @see assQuestion::fromXML()
 	 */
 	function fromXML(&$item, &$questionpool_id, &$tst_id, &$tst_object, &$question_counter, &$import_mapping)
 	{
@@ -550,11 +602,9 @@ class assExampleQuestion extends assQuestion
 	/**
 	 * Returns a QTI xml representation of the question and sets the internal
 	 * domxml variable with the DOM XML representation of the QTI xml representation
-	 * Extension needed to get the plugin path for the import class
 	 *
 	 * @return string The QTI xml representation of the question
 	 * @access public
-	 * @see assQuestion::toXML()
 	 */
 	function toXML($a_include_header = true, $a_include_binary = true, $a_shuffle = false, $test_output = false, $force_image_references = false)
 	{

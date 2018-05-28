@@ -1,7 +1,6 @@
 // English Language File for assExampleQuestion Plugin
 <!-- language file start -->
 assExampleQuestion#:#Example Question
-label_value1#:#Value 1 stored for this answer (any text)
-label_value2#:#Value 2 stored for this answer (any text)
-label_points#:#Points entered for this answer (any number)
+label_value1#:#Text stored for this answer (any text)
+label_value2#:#Points entered for this answer (any number)
 any_text#:#any text or empty

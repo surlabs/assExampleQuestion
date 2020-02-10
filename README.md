@@ -29,6 +29,8 @@ It adds no extra table to the database.
 
 Versions
 --------
+3.0.0 (2020-02-10)
+- initial version for for ILIAS 5.4
 
 2.0.0 (2018-05-28)
 - initial version for for ILIAS 5.3

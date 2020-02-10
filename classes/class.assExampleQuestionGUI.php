@@ -322,12 +322,11 @@ class assExampleQuestionGUI extends assQuestionGUI
 	/**
 	 * Returns the answer specific feedback for the question
 	 * 
-	 * @param integer $active_id Active ID of the user
-	 * @param integer $pass Active pass
+	 * @param array $userSolution Array with the user solutions
 	 * @return string HTML Code with the answer specific feedback
 	 * @access public
 	 */
-	function getSpecificFeedbackOutput($active_id, $pass)
+	function getSpecificFeedbackOutput($userSolution)
 	{
 		// By default no answer specific feedback is defined
 		$output = '';

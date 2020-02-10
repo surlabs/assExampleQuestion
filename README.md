@@ -2,8 +2,8 @@ ILIAS Example Question Plugin
 =============================
 
 Author:   Fred Neumann <fred.neumann@fau.de>
-Version:  2.0.0 (2018-05-28)
-Supports: ILIAS 5.3
+Version:  3.0.0 (2020-02-10)
+Supports: ILIAS 5.4
 
 Installation
 ------------

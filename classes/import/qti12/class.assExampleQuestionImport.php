@@ -24,7 +24,7 @@ class assExampleQuestionImport extends assQuestionImport
 	 * @param array $import_mapping An array containing references to included ILIAS objects
 	 * @access public
 	 */
-	function fromXML(&$item, $questionpool_id, &$tst_id, &$tst_object, &$question_counter, &$import_mapping)
+	function fromXML(&$item, $questionpool_id, &$tst_id, &$tst_object, &$question_counter, $import_mapping) : array
 	{
 		global $ilUser, $ilLog;
 
@@ -138,7 +138,7 @@ class assExampleQuestionImport extends assQuestionImport
 				global $ilLog;
 				$ilLog->write($importfile);
 
-				$media_object =& ilObjMediaObject::_saveTempFileAsMediaObject(basename($importfile), $importfile, FALSE);
+				$media_object = ilObjMediaObject::_saveTempFileAsMediaObject(basename($importfile), $importfile, FALSE);
 				ilObjMediaObject::_saveUsage($media_object->getId(), "qpl:html", $this->object->getId());
 
 				// images in question text
@@ -175,6 +175,8 @@ class assExampleQuestionImport extends assQuestionImport
 		{
 			$import_mapping[$item->getIdent()] = array("pool" => $this->object->getId(), "test" => 0);
 		}
+
+		return $import_mapping;
 	}
 }
 

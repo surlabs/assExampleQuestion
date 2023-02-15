@@ -47,7 +47,7 @@ class assExampleQuestion extends assQuestion
 	 *
 	 * @return string The question type of the question
 	 */
-	public function getQuestionType()
+	public function getQuestionType() : string
 	{
 		return 'assExampleQuestion';
 	}
@@ -69,14 +69,14 @@ class assExampleQuestion extends assQuestion
 	 * Collects all texts in the question which could contain media objects
 	 * which were created with the Rich Text Editor
 	 */
-	protected function getRTETextWithMediaObjects()
+	protected function getRTETextWithMediaObjects(): string
 	{
 		$text = parent::getRTETextWithMediaObjects();
 
 		// eventually add the content of question type specific text fields
 		// ..
 
-		return $text;
+		return (string) $text;
 	}
 
 
@@ -87,10 +87,13 @@ class assExampleQuestion extends assQuestion
 	 */
 	public function getPlugin()
 	{
+		global $DIC;
+
 		if ($this->plugin == null)
 		{
-			$this->plugin = ilPlugin::getPluginObject(IL_COMP_MODULE, 'TestQuestionPool', 'qst', 'assExampleQuestion');
-				
+			/** @var ilComponentFactory $component_factory */
+			$component_factory = $DIC["component.factory"];
+			$this->plugin = $component_factory->getPlugin('exmqst');
 		}
 		return $this->plugin;
 	}
@@ -100,7 +103,7 @@ class assExampleQuestion extends assQuestion
 	 *
 	 * @return boolean True, if the question is complete for use, otherwise false
 	 */
-	public function isComplete()
+	public function isComplete(): bool
 	{
 		// Please add here your own check for question completeness
 		// The parent function will always return false
@@ -121,7 +124,7 @@ class assExampleQuestion extends assQuestion
 	 * @access 	public
 	 * @see assQuestion::saveToDb()
 	 */
-	function saveToDb($original_id = '')
+	function saveToDb($original_id = ''): void
 	{
 
 		// save the basic data (implemented in parent)
@@ -144,7 +147,7 @@ class assExampleQuestion extends assQuestion
 	 * @param integer $question_id A unique key which defines the question in the database
 	 * @see assQuestion::loadFromDb()
 	 */
-	public function loadFromDb($question_id)
+	public function loadFromDb($question_id): void
 	{
 		global $DIC;
 		$ilDB = $DIC->database();
@@ -162,7 +165,6 @@ class assExampleQuestion extends assQuestion
 		$this->setAuthor($data['author']);
 		$this->setPoints($data['points']);
 		$this->setComment($data['description']);
-		$this->setSuggestedSolution($data['solution_hint']);
 
 		$this->setQuestion(ilRTE::_replaceMediaObjectImageSrc($data['question_text'], 1));
 		$this->setEstimatedWorkingTime(substr($data['working_time'], 0, 2), substr($data['working_time'], 3, 2), substr($data['working_time'], 6, 2));
@@ -195,12 +197,12 @@ class assExampleQuestion extends assQuestion
 	 *
 	 * @return void|integer Id of the clone or nothing.
 	 */
-	public function duplicate($for_test = true, $title = '', $author = '', $owner = '', $testObjId = null)
+	public function duplicate($for_test = true, $title = '', $author = '', $owner = '', $testObjId = null): int
 	{
 		if ($this->getId() <= 0)
 		{
 			// The question has not been saved. It cannot be duplicated
-			return;
+			return 0;
 		}
 
 		// make a real clone to keep the actual object unchanged
@@ -335,7 +337,7 @@ class assExampleQuestion extends assQuestion
 	 * 
 	 * @access public
 	 */
-	function syncWithOriginal()
+	function syncWithOriginal(): void
 	{
 		parent::syncWithOriginal();
 	}
@@ -478,7 +480,7 @@ class assExampleQuestion extends assQuestion
 	 *
 	 * @return boolean $status
 	 */
-	function saveWorkingData($active_id, $pass = NULL, $authorized = true)
+	function saveWorkingData($active_id, $pass = NULL, $authorized = true): bool
 	{
 		if (is_null($pass))
 		{
@@ -555,7 +557,7 @@ class assExampleQuestion extends assQuestion
 	 *
 	 * @return int
 	 */
-	public function setExportDetailsXLS($worksheet, $startrow, $active_id, $pass)
+	public function setExportDetailsXLS(ilAssExcelFormatHelper $worksheet, int $startrow, int $active_id, int $pass): int
 	{
 		$worksheet->setFormattedExcelTitle($worksheet->getColumnCoord(0) . $startrow, $this->getPlugin()->txt('assExampleQuestion'));
 		$worksheet->setFormattedExcelTitle($worksheet->getColumnCoord(1) . $startrow, $this->getTitle());
@@ -592,11 +594,12 @@ class assExampleQuestion extends assQuestion
 	 * @param array $import_mapping An array containing references to included ILIAS objects
 	 * @access public
 	 */
-	function fromXML(&$item, &$questionpool_id, &$tst_id, &$tst_object, &$question_counter, &$import_mapping)
+	function fromXML($item, int $questionpool_id, ?int $tst_id, &$tst_object, int &$question_counter,  array $import_mapping, array &$solutionhints = []): array
 	{
-		$this->getPlugin()->includeClass("import/qti12/class.assExampleQuestionImport.php");
 		$import = new assExampleQuestionImport($this);
 		$import->fromXML($item, $questionpool_id, $tst_id, $tst_object, $question_counter, $import_mapping);
+
+		return $import_mapping;
 	}
 
 	/**
@@ -606,9 +609,14 @@ class assExampleQuestion extends assQuestion
 	 * @return string The QTI xml representation of the question
 	 * @access public
 	 */
-	function toXML($a_include_header = true, $a_include_binary = true, $a_shuffle = false, $test_output = false, $force_image_references = false)
+	function toXML(
+		bool $a_include_header = true,
+		bool $a_include_binary = true,
+		bool $a_shuffle = false,
+		bool $test_output = false,
+		bool $force_image_references = false
+	): string
 	{
-		$this->getPlugin()->includeClass("export/qti12/class.assExampleQuestionExport.php");
 		$export = new assExampleQuestionExport($this);
 		return $export->toXML($a_include_header, $a_include_binary, $a_shuffle, $test_output, $force_image_references);
 	}

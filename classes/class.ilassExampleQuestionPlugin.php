@@ -11,7 +11,7 @@ include_once "./Modules/TestQuestionPool/classes/class.ilQuestionsPlugin.php";
 */
 class ilassExampleQuestionPlugin extends ilQuestionsPlugin
 {
-		final function getPluginName()
+		final function getPluginName(): string
 		{
 			return "assExampleQuestion";
 		}
@@ -21,7 +21,7 @@ class ilassExampleQuestionPlugin extends ilQuestionsPlugin
 			return "assExampleQuestion";
 		}
 		
-		final function getQuestionTypeTranslation()
+		final function getQuestionTypeTranslation(): string
 		{
 			return $this->txt($this->getQuestionType());
 		}

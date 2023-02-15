@@ -20,7 +20,7 @@ class assExampleQuestionGUI extends assQuestionGUI
 	/**
 	 * @var assExampleQuestion	The question object
 	 */
-	var $object = null;
+	public assQuestion $object;
 	
 	/**
 	* Constructor
@@ -30,10 +30,13 @@ class assExampleQuestionGUI extends assQuestionGUI
 	*/
 	public function __construct($id = -1)
 	{
+		global $DIC;
+
 		parent::__construct();
 
-		$this->plugin = ilPlugin::getPluginObject(IL_COMP_MODULE, "TestQuestionPool", "qst", "assExampleQuestion");
-		$this->plugin->includeClass("class.assExampleQuestion.php");
+		/** @var ilComponentFactory $component_factory */
+		$component_factory = $DIC["component.factory"];
+		$this->plugin = $component_factory->getPlugin('exmqst');
 		$this->object = new assExampleQuestion();
 		if ($id >= 0)
 		{
@@ -103,7 +106,7 @@ class assExampleQuestionGUI extends assQuestionGUI
 	 * @param bool $always
 	 * @return integer A positive value, if one of the required fields wasn't set, else 0
 	 */
-	public function writePostData($always = false)
+	protected function writePostData($always = false): int
 	{
 		$hasErrors = (!$always) ? $this->editQuestion(true) : false;
 		if (!$hasErrors)
@@ -133,7 +136,7 @@ class assExampleQuestionGUI extends assQuestionGUI
 	 * @param boolean $show_specific_inline_feedback	Show a specific inline feedback
 	 * @return string
 	 */
-	public function getTestOutput($active_id, $pass = NULL, $is_postponed = FALSE, $use_post_solutions = FALSE, $show_specific_inline_feedback = FALSE)
+	public function getTestOutput($active_id, $pass = NULL, $is_postponed = FALSE, $use_post_solutions = FALSE, $show_specific_inline_feedback = FALSE): string
 	{
 		if (is_null($pass))
 		{
@@ -154,8 +157,8 @@ class assExampleQuestionGUI extends assQuestionGUI
 		$template->setVariable("LABEL_VALUE1", $this->plugin->txt('label_value1'));
 		$template->setVariable("LABEL_VALUE2", $this->plugin->txt('label_value2'));
 
-		$template->setVariable("VALUE1", ilUtil::prepareFormOutput($value1));
-		$template->setVariable("VALUE2", ilUtil::prepareFormOutput($value2));
+		$template->setVariable("VALUE1", ilLegacyFormElementsUtil::prepareFormOutput($value1));
+		$template->setVariable("VALUE2", ilLegacyFormElementsUtil::prepareFormOutput($value2));
 
 		$questionoutput = $template->get();
 		$pageoutput = $this->outQuestionPage("", $is_postponed, $active_id, $questionoutput);
@@ -190,8 +193,8 @@ class assExampleQuestionGUI extends assQuestionGUI
 		$template->setVariable("LABEL_VALUE1", $this->plugin->txt('label_value1'));
 		$template->setVariable("LABEL_VALUE2", $this->plugin->txt('label_value2'));
 
-		$template->setVariable("VALUE1", ilUtil::prepareFormOutput($solution['value1']));
-		$template->setVariable("VALUE2", ilUtil::prepareFormOutput($solution['value2']));
+		$template->setVariable("VALUE1", ilLegacyFormElementsUtil::prepareFormOutput($solution['value1']));
+		$template->setVariable("VALUE2", ilLegacyFormElementsUtil::prepareFormOutput($solution['value2']));
 
 		$questionoutput = $template->get();
 		if(!$show_question_only)
@@ -226,7 +229,7 @@ class assExampleQuestionGUI extends assQuestionGUI
 		$show_correct_solution = FALSE,
 		$show_manual_scoring = FALSE,
 		$show_question_text = TRUE
-	)
+	): string
 	{
 		// get the solution of the user for the active pass or from the last pass if allowed
 		if (($active_id > 0) && (!$show_correct_solution))
@@ -286,8 +289,8 @@ class assExampleQuestionGUI extends assQuestionGUI
 		$template->setVariable("LABEL_VALUE1", $this->plugin->txt('label_value1'));
 		$template->setVariable("LABEL_VALUE2", $this->plugin->txt('label_value2'));
 
-		$template->setVariable("VALUE1", empty($value1) ? "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" : ilUtil::prepareFormOutput($value1));
-		$template->setVariable("VALUE2", empty($value2) ? "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" : ilUtil::prepareFormOutput($value2));
+		$template->setVariable("VALUE1", empty($value1) ? "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" : ilLegacyFormElementsUtil::prepareFormOutput($value1));
+		$template->setVariable("VALUE2", empty($value2) ? "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" : ilLegacyFormElementsUtil::prepareFormOutput($value2));
 
 		$questiontext = $this->object->getQuestion();
 		if ($show_question_text==true)
@@ -326,7 +329,7 @@ class assExampleQuestionGUI extends assQuestionGUI
 	 * @return string HTML Code with the answer specific feedback
 	 * @access public
 	 */
-	function getSpecificFeedbackOutput($userSolution)
+	function getSpecificFeedbackOutput($userSolution): string
 	{
 		// By default no answer specific feedback is defined
 		$output = '';
@@ -338,7 +341,7 @@ class assExampleQuestionGUI extends assQuestionGUI
 	* Sets the ILIAS tabs for this question type
 	* called from ilObjTestGUI and ilObjQuestionPoolGUI
 	*/
-	public function setQuestionTabs()
+	public function setQuestionTabs(): void
 	{
 		global $DIC;
 		$rbacsystem = $DIC->rbac()->system();
@@ -362,11 +365,11 @@ class assExampleQuestionGUI extends assQuestionGUI
 				// edit page
 				$ilTabs->addTarget("edit_page",
 					$this->ctrl->getLinkTargetByClass("ilAssQuestionPageGUI", "edit"),
-					array("edit", "insert", "exec_pg"),
-					"", "", $force_active);
+					array("edit", "insert", "exec_pg"));
 			}
 
-			$this->addTab_QuestionPreview($ilTabs);
+			// preview
+			$this->addTab_Question($ilTabs);
 		}
 
 		$force_active = false;

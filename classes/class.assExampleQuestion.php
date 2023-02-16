@@ -28,12 +28,12 @@ class assExampleQuestion extends assQuestion
 	 *
 	 * @see assQuestion:assQuestion()
 	 */
-	function __construct( 
-		$title = '',
-		$comment = '',
-		$author = '',
-		$owner = -1,
-		$question = ''
+	function __construct(
+		string $title = "",
+		string $comment = "",
+		string $author = "",
+		int $owner = -1,
+		string $question = ""
 	)
 	{
 		// needed for excel export
@@ -130,7 +130,11 @@ class assExampleQuestion extends assQuestion
 		// save the basic data (implemented in parent)
 		// a new question is created if the id is -1
 		// afterwards the new id is set
-		$this->saveQuestionDataToDb($original_id);
+		if ($original_id == '') {
+			$this->saveQuestionDataToDb();
+		} else {
+			$this->saveQuestionDataToDb($original_id);
+		}
 
 		// Now you can save additional data
 		// ...
@@ -147,7 +151,7 @@ class assExampleQuestion extends assQuestion
 	 * @param integer $question_id A unique key which defines the question in the database
 	 * @see assQuestion::loadFromDb()
 	 */
-	public function loadFromDb($question_id): void
+	public function loadFromDb(int $question_id): void
 	{
 		global $DIC;
 		$ilDB = $DIC->database();
@@ -156,28 +160,30 @@ class assExampleQuestion extends assQuestion
 		$result = $ilDB->query("SELECT qpl_questions.* FROM qpl_questions WHERE question_id = "
 				. $ilDB->quote($question_id, 'integer'));
 
-		$data = $ilDB->fetchAssoc($result);
-		$this->setId($question_id);
-		$this->setObjId($data['obj_fi']);
-		$this->setOriginalId($data['original_id']);
-		$this->setOwner($data['owner']);
-		$this->setTitle($data['title']);
-		$this->setAuthor($data['author']);
-		$this->setPoints($data['points']);
-		$this->setComment($data['description']);
+		if ($result->numRows() > 0) {
+			 $data = $ilDB->fetchAssoc($result);
+			 $this->setId($question_id);
+			 $this->setObjId($data['obj_fi']);
+			 $this->setOriginalId($data['original_id']);
+			 $this->setOwner($data['owner']);
+			 $this->setTitle((string) $data['title']);
+			 $this->setAuthor($data['author']);
+			 $this->setPoints($data['points']);
+			 $this->setComment((string) $data['description']);
 
-		$this->setQuestion(ilRTE::_replaceMediaObjectImageSrc($data['question_text'], 1));
-		$this->setEstimatedWorkingTime(substr($data['working_time'], 0, 2), substr($data['working_time'], 3, 2), substr($data['working_time'], 6, 2));
+			 $this->setQuestion(ilRTE::_replaceMediaObjectImageSrc((string) $data['question_text'], 1));
+			 $this->setEstimatedWorkingTime(substr($data['working_time'], 0, 2), substr($data['working_time'], 3, 2), substr($data['working_time'], 6, 2));
 
-		// now you can load additional data
-		// ...
+			 // now you can load additional data
+			 // ...
 
-		try
-		{
-			$this->setAdditionalContentEditingMode($data['add_cont_edit_mode']);
-		}
-		catch(ilTestQuestionPoolException $e)
-		{
+			 try
+			 {
+				 $this->setAdditionalContentEditingMode($data['add_cont_edit_mode']);
+			 }
+			 catch(ilTestQuestionPoolException $e)
+			 {
+			 }
 		}
 
 		// loads additional stuff like suggested solutions
@@ -197,7 +203,7 @@ class assExampleQuestion extends assQuestion
 	 *
 	 * @return void|integer Id of the clone or nothing.
 	 */
-	public function duplicate($for_test = true, $title = '', $author = '', $owner = '', $testObjId = null): int
+	public function duplicate(bool $for_test = true, string $title = "", string $author = "", string $owner = "", $testObjId = null): int
 	{
 		if ($this->getId() <= 0)
 		{

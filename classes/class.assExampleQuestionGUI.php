@@ -8,6 +8,7 @@
  * @ingroup ModulesTestQuestionPool
  *
  * @ilctrl_iscalledby assExampleQuestionGUI: ilObjQuestionPoolGUI, ilObjTestGUI, ilQuestionEditGUI, ilTestExpressPageObjectGUI
+ * @ilctrl_calls assExampleQuestionGUI: ilFormPropertyDispatchGUI
  */
 class assExampleQuestionGUI extends assQuestionGUI
 {
@@ -193,8 +194,8 @@ class assExampleQuestionGUI extends assQuestionGUI
 		$template->setVariable("LABEL_VALUE1", $this->plugin->txt('label_value1'));
 		$template->setVariable("LABEL_VALUE2", $this->plugin->txt('label_value2'));
 
-		$template->setVariable("VALUE1", ilLegacyFormElementsUtil::prepareFormOutput($solution['value1']));
-		$template->setVariable("VALUE2", ilLegacyFormElementsUtil::prepareFormOutput($solution['value2']));
+		$template->setVariable("VALUE1", ilLegacyFormElementsUtil::prepareFormOutput($solution['value1'] ?? ''));
+		$template->setVariable("VALUE2", ilLegacyFormElementsUtil::prepareFormOutput($solution['value2'] ?? ''));
 
 		$questionoutput = $template->get();
 		if(!$show_question_only)
@@ -329,7 +330,7 @@ class assExampleQuestionGUI extends assQuestionGUI
 	 * @return string HTML Code with the answer specific feedback
 	 * @access public
 	 */
-	function getSpecificFeedbackOutput($userSolution): string
+	public function getSpecificFeedbackOutput($userSolution): string
 	{
 		// By default no answer specific feedback is defined
 		$output = '';
@@ -343,70 +344,7 @@ class assExampleQuestionGUI extends assQuestionGUI
 	*/
 	public function setQuestionTabs(): void
 	{
-		global $DIC;
-		$rbacsystem = $DIC->rbac()->system();
-		$ilTabs = $DIC->tabs();
-
-		$this->ctrl->setParameterByClass("ilpageobjectgui", "q_id", $_GET["q_id"]);
-		include_once "./Modules/TestQuestionPool/classes/class.assQuestion.php";
-		$q_type = $this->object->getQuestionType();
-
-		if (strlen($q_type))
-		{
-			$classname = $q_type . "GUI";
-			$this->ctrl->setParameterByClass(strtolower($classname), "sel_question_types", $q_type);
-			$this->ctrl->setParameterByClass(strtolower($classname), "q_id", $_GET["q_id"]);
-		}
-
-		if ($_GET["q_id"])
-		{
-			if ($rbacsystem->checkAccess('write', $_GET["ref_id"]))
-			{
-				// edit page
-				$ilTabs->addTarget("edit_page",
-					$this->ctrl->getLinkTargetByClass("ilAssQuestionPageGUI", "edit"),
-					array("edit", "insert", "exec_pg"));
-			}
-
-			// preview
-			$this->addTab_Question($ilTabs);
-		}
-
-		$force_active = false;
-		if ($rbacsystem->checkAccess('write', $_GET["ref_id"]))
-		{
-			$url = "";
-
-			if ($classname) $url = $this->ctrl->getLinkTargetByClass($classname, "editQuestion");
-			$commands = $_POST["cmd"];
-
-			// edit question properties
-			$ilTabs->addTarget("edit_properties",
-				$url,
-				array("editQuestion", "save", "cancel", "saveEdit", "originalSyncForm"),
-				$classname, "", $force_active);
-		}
-
-		// add tab for question feedback within common class assQuestionGUI
-		$this->addTab_QuestionFeedback($ilTabs);
-
-		// add tab for question hint within common class assQuestionGUI
-		$this->addTab_QuestionHints($ilTabs);
-
-		// add tab for question's suggested solution within common class assQuestionGUI
-		$this->addTab_SuggestedSolution($ilTabs, $classname);
-
-
-		// Assessment of questions sub menu entry
-		if ($_GET["q_id"])
-		{
-			$ilTabs->addTarget("statistics",
-				$this->ctrl->getLinkTargetByClass($classname, "assessment"),
-				array("assessment"),
-				$classname, "");
-		}
-
-		$this->addBackTab($ilTabs);
+		parent::setQuestionTabs();
 	}
 }
 ?>

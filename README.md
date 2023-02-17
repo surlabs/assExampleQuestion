@@ -2,8 +2,8 @@ ILIAS Example Question Plugin
 =============================
 
 Author:   Fred Neumann <fred.neumann@fau.de>
-Version:  3.0.0 (2020-02-10)
-Supports: ILIAS 5.4
+Version:  8.0.0 (2022-02-17)
+Supports: ILIAS 8
 
 Installation
 ------------
@@ -29,6 +29,9 @@ It adds no extra table to the database.
 
 Versions
 --------
+8.0.0 (2022-02-17)
+- initial version for ILIAS 8
+
 3.0.0 (2020-02-10)
 - initial version for for ILIAS 5.4
 

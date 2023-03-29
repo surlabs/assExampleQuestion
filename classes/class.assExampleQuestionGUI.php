@@ -21,7 +21,7 @@ class assExampleQuestionGUI extends assQuestionGUI
 	/**
 	 * @var assExampleQuestion	The question object
 	 */
-	public assQuestion $object;
+	public $object;
 	
 	/**
 	* Constructor
@@ -31,13 +31,10 @@ class assExampleQuestionGUI extends assQuestionGUI
 	*/
 	public function __construct($id = -1)
 	{
-		global $DIC;
-
 		parent::__construct();
 
-		/** @var ilComponentFactory $component_factory */
-		$component_factory = $DIC["component.factory"];
-		$this->plugin = $component_factory->getPlugin('exmqst');
+		$this->plugin = ilPlugin::getPluginObject(IL_COMP_MODULE, "TestQuestionPool", "qst", "assExampleQuestion");
+		$this->plugin->includeClass("class.assExampleQuestion.php");
 		$this->object = new assExampleQuestion();
 		if ($id >= 0)
 		{
@@ -194,8 +191,8 @@ class assExampleQuestionGUI extends assQuestionGUI
 		$template->setVariable("LABEL_VALUE1", $this->plugin->txt('label_value1'));
 		$template->setVariable("LABEL_VALUE2", $this->plugin->txt('label_value2'));
 
-		$template->setVariable("VALUE1", ilLegacyFormElementsUtil::prepareFormOutput($solution['value1'] ?? ''));
-		$template->setVariable("VALUE2", ilLegacyFormElementsUtil::prepareFormOutput($solution['value2'] ?? ''));
+		$template->setVariable("VALUE1", ilUtil::prepareFormOutput($solution['value1']));
+		$template->setVariable("VALUE2", ilUtil::prepareFormOutput($solution['value2']));
 
 		$questionoutput = $template->get();
 		if(!$show_question_only)
@@ -290,8 +287,8 @@ class assExampleQuestionGUI extends assQuestionGUI
 		$template->setVariable("LABEL_VALUE1", $this->plugin->txt('label_value1'));
 		$template->setVariable("LABEL_VALUE2", $this->plugin->txt('label_value2'));
 
-		$template->setVariable("VALUE1", empty($value1) ? "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" : ilLegacyFormElementsUtil::prepareFormOutput($value1));
-		$template->setVariable("VALUE2", empty($value2) ? "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" : ilLegacyFormElementsUtil::prepareFormOutput($value2));
+		$template->setVariable("VALUE1", empty($value1) ? "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" : ilUtil::prepareFormOutput($value1));
+		$template->setVariable("VALUE2", empty($value2) ? "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" : ilUtil::prepareFormOutput($value2));
 
 		$questiontext = $this->object->getQuestion();
 		if ($show_question_text==true)

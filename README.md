@@ -2,8 +2,9 @@ ILIAS Example Question Plugin
 =============================
 
 Author:   Fred Neumann <fred.neumann@fau.de>
-Version:  8.0.0 (2022-02-17)
-Supports: ILIAS 8
+Author:   Jesús Copado  <jcopado@surlabs.es>
+Version:  7.13.0 (2023-03-29)
+Supports: ILIAS 7
 
 Installation
 ------------
@@ -31,6 +32,9 @@ Versions
 --------
 8.0.0 (2022-02-17)
 - initial version for ILIAS 8
+
+7.13.0 (2022-02-17)
+-  version for ILIAS 7.13+
 
 3.0.0 (2020-02-10)
 - initial version for for ILIAS 5.4

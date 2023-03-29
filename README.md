@@ -1,10 +1,9 @@
 ILIAS Example Question Plugin
 =============================
-
-Author:   Fred Neumann <fred.neumann@fau.de>
-Author:   Jesús Copado  <jcopado@surlabs.es>
-Version:  7.13.0 (2023-03-29)
-Supports: ILIAS 7
+- Author:   Fred Neumann <fred.neumann@fau.de>
+- Author:   Jesús Copado  <jcopado@surlabs.es>
+- Version:  7.13.0 (2023-03-29)
+- Supports: ILIAS 7.13+
 
 Installation
 ------------
